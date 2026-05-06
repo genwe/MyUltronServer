@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'MyUltronServer'
-  s.version          = '0.0.6'
+  s.version          = '0.0.7'
   s.summary          = 'A short description of MyUltronServer.'
 
 # This description is used to generate tags and improve search results.
@@ -28,9 +28,9 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'https://github.com/genwe/MyUltronServer.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '15.0'
 
-  s.source_files = 'MyUltronServer/Classes/**/*'
+  s.source_files = 'Sources/MyUltronServer/**/*.{h,m,swift}'
   
   # s.resource_bundles = {
   #   'MyUltronServer' => ['MyUltronServer/Assets/*.png']
