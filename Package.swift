@@ -16,7 +16,11 @@ let package = Package(
         .target(
             name: "MyUltronServer",
             path: "Sources/MyUltronServer",
-            publicHeadersPath: "include"
+            sources: ["MyUltronServer.m"],          // 明确源文件
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include")        // 帮助编译器找到头文件
+            ]
         ),
     ]
 )
