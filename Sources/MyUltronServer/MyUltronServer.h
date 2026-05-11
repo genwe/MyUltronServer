@@ -65,6 +65,9 @@ extern NSNotificationName const MyUltronServerDidDisconnectNotification;
 /// Send a message dictionary without smart-auto filter.
 - (void)sendMessageUnfiltered:(NSDictionary *)dict;
 
+/// Send raw binary data (e.g. file contents).
+- (void)sendBinaryData:(NSData *)data;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -24,6 +24,7 @@
         [server registerForMessageType:@"sandboxList"      delegate:self];
         [server registerForMessageType:@"sandboxCreateDir" delegate:self];
         [server registerForMessageType:@"sandboxDelete"    delegate:self];
+        [server registerForMessageType:@"sandboxDownload"  delegate:self];
         NSLog(@"[MyUltron] Sandbox module registered");
     }
     return self;
@@ -42,6 +43,8 @@
         [self handleCreateDirRequest:content];
     } else if ([type isEqualToString:@"sandboxDelete"]) {
         [self handleDeleteRequest:content];
+    } else if ([type isEqualToString:@"sandboxDownload"]) {
+        [self handleDownloadRequest:content];
     }
 }
 
@@ -174,6 +177,60 @@
     [self.server sendMessage:@{
         kMyUltronMsgKeyVersion: @"1.0",
         kMyUltronMsgKeyType:    @"sandboxDelete",
+        kMyUltronMsgKeyContent: @{
+            @"path":    path ?: @"",
+            @"success": @(success),
+            @"error":   error ?: @"",
+        },
+    }];
+}
+
+#pragma mark - Download
+
+- (void)handleDownloadRequest:(NSDictionary *)content {
+    NSString *requestPath = content[@"path"];
+    if (requestPath.length == 0) {
+        [self respondDownload:requestPath success:NO error:@"path is empty"];
+        return;
+    }
+
+    NSString *fullPath = [self resolvePath:requestPath];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    if (![fm fileExistsAtPath:fullPath isDirectory:&isDir] || isDir) {
+        [self respondDownload:requestPath success:NO error:@"not a file"];
+        return;
+    }
+
+    NSData *fileData = [NSData dataWithContentsOfFile:fullPath];
+    if (!fileData) {
+        [self respondDownload:requestPath success:NO error:@"cannot read file"];
+        return;
+    }
+
+    // Send metadata JSON first, then binary file data
+    [self.server sendMessage:@{
+        kMyUltronMsgKeyVersion: @"1.0",
+        kMyUltronMsgKeyType:    @"sandboxDownload",
+        kMyUltronMsgKeyContent: @{
+            @"path":    requestPath,
+            @"success": @YES,
+            @"size":    @(fileData.length),
+            @"name":    [requestPath lastPathComponent],
+        },
+    }];
+
+    // Then send the raw file bytes as a binary packet
+    [self.server sendBinaryData:fileData];
+}
+
+- (void)respondDownload:(NSString *)path
+                success:(BOOL)success
+                  error:(NSString *)error
+{
+    [self.server sendMessage:@{
+        kMyUltronMsgKeyVersion: @"1.0",
+        kMyUltronMsgKeyType:    @"sandboxDownload",
         kMyUltronMsgKeyContent: @{
             @"path":    path ?: @"",
             @"success": @(success),

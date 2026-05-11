@@ -82,6 +82,11 @@ NSNotificationName const MyUltronServerDidDisconnectNotification = @"MyUltronSer
     [self.socket sendJsonData:dict];
 }
 
+- (void)sendBinaryData:(NSData *)data {
+    if (data == nil) return;
+    [self.socket sendBinaryData:data];
+}
+
 #pragma mark - MyUltronSocketDelegate
 
 - (void)socket:(MyUltronSocket *)socket
