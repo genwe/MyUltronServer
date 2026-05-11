@@ -10,6 +10,7 @@
 #import "../Business/MyUltronBasic.h"
 #import "../Business/MyUltronAppInfo.h"
 #import "../Business/MyUltronSandbox.h"
+#import "../Business/MyUltronUserDefaults.h"
 
 @interface MyUltronManager ()
 
@@ -18,7 +19,8 @@
 // Built-in modules
 @property (nonatomic, strong) MyUltronBasic   *basicModule;
 @property (nonatomic, strong) MyUltronAppInfo *appInfoModule;
-@property (nonatomic, strong) MyUltronSandbox *sandboxModule;
+@property (nonatomic, strong) MyUltronSandbox     *sandboxModule;
+@property (nonatomic, strong) MyUltronUserDefaults *userDefaultsModule;
 
 @end
 
@@ -63,7 +65,8 @@
         // Initialize built-in business modules
         _basicModule   = [[MyUltronBasic alloc]   initWithServer:_server];
         _appInfoModule = [[MyUltronAppInfo alloc] initWithServer:_server];
-        _sandboxModule = [[MyUltronSandbox alloc] initWithServer:_server];
+        _sandboxModule     = [[MyUltronSandbox alloc]     initWithServer:_server];
+        _userDefaultsModule = [[MyUltronUserDefaults alloc] initWithServer:_server];
     }
     return self;
 }
