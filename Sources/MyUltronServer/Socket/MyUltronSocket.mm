@@ -236,6 +236,9 @@ didAcceptNewSocket:(GCDAsyncSocket *)newSocket {
    didReadData:(NSData *)data
        withTag:(long)tag {
 
+    NSLog(@"[MyUltron] Socket read %lu bytes, tag=%ld",
+          (unsigned long)data.length, tag);
+
     if (tag == kMyUltronPacketTagLength) {
         // We just read the 4-byte length prefix
         [self resetReadBuffer];

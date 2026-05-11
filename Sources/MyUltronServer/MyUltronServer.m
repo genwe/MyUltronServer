@@ -112,7 +112,10 @@ didReceivePacket:(struct myultron_packet *)packet {
 
     id<MyUltronServerMessageDelegate> delegate = [self.delegateMap objectForKey:messageType];
     if (delegate != nil) {
+        NSLog(@"[MyUltron] Server routing '%@' → delegate", messageType);
         [delegate myUltronServerDidReceiveMessage:dict];
+    } else {
+        NSLog(@"[MyUltron] Server NO delegate for messageType: '%@'", messageType);
     }
 }
 
