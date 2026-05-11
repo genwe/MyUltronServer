@@ -1,16 +1,23 @@
 PODS:
+  - CocoaAsyncSocket (7.6.5)
   - Expecta (1.0.6)
-  - "Expecta+Snapshots (3.1.1)":
+  - "Expecta+Snapshots (3.2.0)":
     - Expecta (~> 1.0)
-    - FBSnapshotTestCase/Core (~> 2.0)
-    - Specta (~> 1.0)
+    - iOSSnapshotTestCase (~> 8.0)
+    - Specta (~> 2.0)
   - FBSnapshotTestCase (2.1.4):
     - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
   - FBSnapshotTestCase/Core (2.1.4)
   - FBSnapshotTestCase/SwiftSupport (2.1.4):
     - FBSnapshotTestCase/Core
-  - MyUltronServer (0.0.6)
-  - Specta (1.0.7)
+  - iOSSnapshotTestCase (8.0.0):
+    - iOSSnapshotTestCase/SwiftSupport (= 8.0.0)
+  - iOSSnapshotTestCase/Core (8.0.0)
+  - iOSSnapshotTestCase/SwiftSupport (8.0.0):
+    - iOSSnapshotTestCase/Core
+  - MyUltronServer (0.1.0):
+    - CocoaAsyncSocket (~> 7.6)
+  - Specta (2.0.0)
 
 DEPENDENCIES:
   - Expecta
@@ -21,9 +28,11 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - CocoaAsyncSocket
     - Expecta
     - "Expecta+Snapshots"
     - FBSnapshotTestCase
+    - iOSSnapshotTestCase
     - Specta
 
 EXTERNAL SOURCES:
@@ -31,12 +40,14 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
+  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   Expecta: 3b6bd90a64b9a1dcb0b70aa0e10a7f8f631667d5
-  "Expecta+Snapshots": dcff217eef506dabd6dfdc7864ea2da321fafbb8
+  "Expecta+Snapshots": 7a3ac7ad2b9bae43aadb4dca08113bb495c98f3e
   FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
-  MyUltronServer: 1b269cc182214494787ce63bc80ad271008ad277
-  Specta: 3e1bd89c3517421982dc4d1c992503e48bd5fe66
+  iOSSnapshotTestCase: a670511f9ee3829c2b9c23e6e68f315fd7b6790f
+  MyUltronServer: 014b043704a7ebaee4fb8b2ca161b4c0bb035ef0
+  Specta: b79d84043684b35ffdc2680df578dc318ec2efc2
 
-PODFILE CHECKSUM: defcddd8760cda9c6efc496a0a1fce9a9913456d
+PODFILE CHECKSUM: 57e8ababa57abd870ae0d3de7da882e0e4f65fe0
 
 COCOAPODS: 1.16.2

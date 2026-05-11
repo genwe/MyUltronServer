@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "MyUltronServer",
     platforms: [
-        .iOS(.v10)
+        .iOS(.v13)
     ],
     products: [
         .library(
@@ -12,15 +12,21 @@ let package = Package(
             targets: ["MyUltronServer"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket.git",
+                 from: "7.6.0"),
+    ],
     targets: [
         .target(
             name: "MyUltronServer",
+            dependencies: ["CocoaAsyncSocket"],
             path: "Sources/MyUltronServer",
-            sources: ["MyUltronServer.m"],          // 明确源文件
+            exclude: [], // no exclusions — all .h/.m/.mm under this tree
             publicHeadersPath: "include",
-            cSettings: [
-                .headerSearchPath("include")        // 帮助编译器找到头文件
+            cxxSettings: [
+                .define("SPM_BUILD"),
             ]
         ),
-    ]
+    ],
+    cxxLanguageStandard: .cxx14
 )

@@ -2,20 +2,12 @@
 //  MyUltronServer.h
 //  MyUltronServer
 //
-//  Public umbrella header — the single import for all MyUltronServer APIs.
-//  Import this header to use MyUltronManager, MyUltronServer, and the
-//  message-routing delegate protocol.
+//  Public API — the core message-routing server.
+//  Integrators interact with `MyUltronManager` for lifecycle;
+//  use this class only when you need custom message handlers.
 //
 
 #import <Foundation/Foundation.h>
-
-//! Project version number for MyUltronServer.
-FOUNDATION_EXPORT double MyUltronServerVersionNumber;
-//! Project version string for MyUltronServer.
-FOUNDATION_EXPORT const unsigned char MyUltronServerVersionString[];
-
-// ---- Re-export core classes ----
-#import <MyUltronServer/MyUltronManager.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -33,7 +25,7 @@ extern NSNotificationName const MyUltronServerDidConnectNotification;
 /// Posted when a MyUltron client disconnects.
 extern NSNotificationName const MyUltronServerDidDisconnectNotification;
 
-// MARK: - Delegate protocol
+// MARK: - Delegate
 
 @protocol MyUltronServerMessageDelegate <NSObject>
 
@@ -43,7 +35,7 @@ extern NSNotificationName const MyUltronServerDidDisconnectNotification;
 
 @end
 
-// MARK: - Server class
+// MARK: - Server
 
 @interface MyUltronServer : NSObject
 
