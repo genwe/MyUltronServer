@@ -66,26 +66,6 @@ Sources/MyUltronServer/
 │   └── MyUltronAppInfo.h / .m      # App metadata (responds to "appInfo")
 ```
 
-### Architecture Layering (vs HTUltronSupport)
-
-This project is built by extracting and simplifying the core TCP server pattern from
-HTUltronSupport, removing all host-app-specific dependencies. The layer mapping:
-
-| Layer | MyUltronServer | HTUltronSupport equivalent |
-|---|---|---|
-| **Packet** — binary protocol encode/decode | `MyUltronPacket.h` + `MyUltronPacketBuilder.mm` | `HTUltronPacket.h` + `HTUltronPacketBuilder.mm` |
-| **Socket** — TCP listen, accept, framing, heartbeat | `MyUltronSocket.h/.mm` | `HTUltronSocket.h/.mm` |
-| **Server** — JSON deserialize, messageType routing, delegate dispatch | `MyUltronServer.h/.m` | `HTUltronServer.h/.m` |
-| **Manager** — singleton, lifecycle, module init | `MyUltronManager.h/.m` | `HTUltronManager.h/.m` |
-| **Business** — per-messageType handlers | `MyUltronBasic`, `MyUltronAppInfo` | `HTUltron`, `HTUltronAppInfo`, etc. |
-
-Key differences from HTUltronSupport:
-
-- **Zero host-app dependency**: only Foundation + UIKit + CocoaAsyncSocket; no HTMobileBaseKit, HTCoreComm, MMKV, etc.
-- **Weak delegate storage**: uses `NSMapTable` (strong-to-weak) instead of `NSMutableDictionary` to avoid retain cycles
-- **Auto-start**: `+load` triggers `-start` after 1 s delay — no explicit call required
-- **Simpler port policy**: 62345 by default, 72345 for Debug/AdHoc bundles
-
 ## Protocol
 
 MyUltronServer uses a **usbmux-compatible binary packet format**:
