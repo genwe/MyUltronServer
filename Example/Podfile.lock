@@ -15,7 +15,7 @@ PODS:
   - iOSSnapshotTestCase/Core (8.0.0)
   - iOSSnapshotTestCase/SwiftSupport (8.0.0):
     - iOSSnapshotTestCase/Core
-  - MyUltronServer (0.1.1):
+  - MyUltronServer (0.1.3):
     - CocoaAsyncSocket (~> 7.6)
   - Specta (2.0.0)
 
@@ -45,7 +45,7 @@ SPEC CHECKSUMS:
   "Expecta+Snapshots": 7a3ac7ad2b9bae43aadb4dca08113bb495c98f3e
   FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
   iOSSnapshotTestCase: a670511f9ee3829c2b9c23e6e68f315fd7b6790f
-  MyUltronServer: be26ba2044608f21482abf271cc76775885125d2
+  MyUltronServer: 0d33b70e8268da5dde1442b9d2838b3df10f4c38
   Specta: b79d84043684b35ffdc2680df578dc318ec2efc2
 
 PODFILE CHECKSUM: 57e8ababa57abd870ae0d3de7da882e0e4f65fe0

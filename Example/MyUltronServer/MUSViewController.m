@@ -66,14 +66,14 @@
     } else {
         NSLog(@"user 表已就绪");
 
-//        // 插入张三的数据
-//        const char *insertUserSQL = "INSERT INTO user (姓名, 性别, 年龄) VALUES ('张三', '男', 35);";
-//        if (sqlite3_exec(db, insertUserSQL, NULL, NULL, &errMsg) != SQLITE_OK) {
-//            NSLog(@"插入 user 数据失败: %s", errMsg);
-//            sqlite3_free(errMsg);
-//        } else {
-//            NSLog(@"user 数据已插入: 张三, 男, 35");
-//        }
+        // 插入张三的数据（仅在首次创建表时插入）
+        const char *insertUserSQL = "INSERT INTO user (姓名, 性别, 年龄) SELECT '张三', '男', 35 WHERE NOT EXISTS (SELECT 1 FROM user WHERE 姓名='张三');";
+        if (sqlite3_exec(db, insertUserSQL, NULL, NULL, &errMsg) != SQLITE_OK) {
+            NSLog(@"插入 user 数据失败: %s", errMsg);
+            sqlite3_free(errMsg);
+        } else {
+            NSLog(@"user 数据已插入: 张三, 男, 35");
+        }
     }
 
     // 创建 work 表
@@ -89,14 +89,14 @@
     } else {
         NSLog(@"work 表已就绪");
 
-//        // 插入开发岗位数据
-//        const char *insertWorkSQL = "INSERT INTO work (岗位名称, 薪资) VALUES ('开发', 10000);";
-//        if (sqlite3_exec(db, insertWorkSQL, NULL, NULL, &errMsg) != SQLITE_OK) {
-//            NSLog(@"插入 work 数据失败: %s", errMsg);
-//            sqlite3_free(errMsg);
-//        } else {
-//            NSLog(@"work 数据已插入: 开发, 10000");
-//        }
+        // 插入开发岗位数据（仅在首次创建表时插入）
+        const char *insertWorkSQL = "INSERT INTO work (岗位名称, 薪资) SELECT '开发', 10000 WHERE NOT EXISTS (SELECT 1 FROM work WHERE 岗位名称='开发');";
+        if (sqlite3_exec(db, insertWorkSQL, NULL, NULL, &errMsg) != SQLITE_OK) {
+            NSLog(@"插入 work 数据失败: %s", errMsg);
+            sqlite3_free(errMsg);
+        } else {
+            NSLog(@"work 数据已插入: 开发, 10000");
+        }
     }
 
     sqlite3_close(db);
