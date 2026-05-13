@@ -50,17 +50,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        // Default port — can be overridden per app.
-        // In production, you may want to use a scheme derived from the bundle ID.
-        uint32_t listenPort = 62345;
-
-        NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
-        if ([bundleID hasSuffix:@".debug"] || [bundleID hasSuffix:@".adhoc"]) {
-            // Debug / ad-hoc builds use a different port to avoid collisions
-            listenPort = 72345;
-        }
-
-        _server = [[MyUltronServer alloc] initWithPort:listenPort];
+        _server = [[MyUltronServer alloc] initWithPort:62345];
 
         // Initialize built-in business modules
         _basicModule   = [[MyUltronBasic alloc]   initWithServer:_server];

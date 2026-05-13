@@ -142,7 +142,7 @@ pod 'MyUltronServer'
 }
 ```
 
-That's it — the server listens on port **62345** (or **72345** for Debug/Ad-Hoc builds).
+That's it — the server listens on port **62345**.
 
 ## Extending: Custom Business Modules
 
