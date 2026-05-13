@@ -11,6 +11,7 @@
 #import "../Business/MyUltronAppInfo.h"
 #import "../Business/MyUltronSandbox.h"
 #import "../Business/MyUltronUserDefaults.h"
+#import "../Business/MyUltronSqlite.h"
 
 @interface MyUltronManager ()
 
@@ -21,6 +22,7 @@
 @property (nonatomic, strong) MyUltronAppInfo *appInfoModule;
 @property (nonatomic, strong) MyUltronSandbox     *sandboxModule;
 @property (nonatomic, strong) MyUltronUserDefaults *userDefaultsModule;
+@property (nonatomic, strong) MyUltronSqlite      *sqliteModule;
 
 @end
 
@@ -57,6 +59,7 @@
         _appInfoModule = [[MyUltronAppInfo alloc] initWithServer:_server];
         _sandboxModule     = [[MyUltronSandbox alloc]     initWithServer:_server];
         _userDefaultsModule = [[MyUltronUserDefaults alloc] initWithServer:_server];
+        _sqliteModule       = [[MyUltronSqlite alloc]      initWithServer:_server];
     }
     return self;
 }
