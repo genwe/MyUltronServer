@@ -39,7 +39,10 @@ An embeddable TCP debug server for iOS apps. MyUltronServer enables real-time tw
  │  Business Modules:                   │
  │   • MyUltronBasic   (handshake)      │
  │   • MyUltronAppInfo (app metadata)   │
- │   • Your custom modules ...          │
+ │   • MyUltronSandbox (file ops)       │
+ │   • MyUltronUserDefaults (prefs)     │
+ │   • MyUltronSqlite   (DB browser)    │
+ │   • MyUltronLog      (log capture)   │
  └──────────────────────────────────────┘
 ```
 
@@ -63,8 +66,31 @@ Sources/MyUltronServer/
 │   └── MyUltronManager.m           # Module initialization, auto-start
 ├── Business/
 │   ├── MyUltronBasic.h / .m        # Handshake on client connect
-│   └── MyUltronAppInfo.h / .m      # App metadata (responds to "appInfo")
+│   ├── MyUltronAppInfo.h / .m      # App metadata (responds to "appInfo")
+│   ├── MyUltronSandbox.h / .m      # Sandbox file operations (list/create/delete)
+│   ├── MyUltronUserDefaults.h / .m # NSUserDefaults inspector (browse/set/delete)
+│   ├── MyUltronSqlite.h / .m       # SQLite inspector (list DBs, browse tables, CRUD)
+│   └── MyUltronLog.h / .m          # Log capture and forwarding
 ```
+
+### Message Types
+
+| messageType | Module | Direction | Description |
+|---|---|---|---|
+| `ultron` | MyUltronBasic | Server → Client | Handshake on connect |
+| `appInfo` | MyUltronAppInfo | Bidirectional | Host app metadata |
+| `sandboxList` | MyUltronSandbox | Bidirectional | List sandbox directory |
+| `sandboxCreateDir` | MyUltronSandbox | Bidirectional | Create sandbox directory |
+| `sandboxDelete` | MyUltronSandbox | Bidirectional | Delete sandbox file/dir |
+| `sandboxDownload` | MyUltronSandbox | Bidirectional | Download sandbox file |
+| `userDefaultsList` | MyUltronUserDefaults | Bidirectional | List UserDefaults keys |
+| `userDefaultsSet` | MyUltronUserDefaults | Bidirectional | Set UserDefaults value |
+| `userDefaultsDelete` | MyUltronUserDefaults | Bidirectional | Delete UserDefaults key |
+| `sqliteList` | MyUltronSqlite | Bidirectional | List SQLite databases |
+| `sqliteQuery` | MyUltronSqlite | Bidirectional | Execute SQL query |
+| `logStart` | MyUltronLog | Client → Server | Start log capture |
+| `logStop` | MyUltronLog | Client → Server | Stop log capture |
+| `logMessage` | MyUltronLog | Server → Client | Log line forwarded |
 
 ## Protocol
 
