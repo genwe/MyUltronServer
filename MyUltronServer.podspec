@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'MyUltronServer'
-  s.version          = '0.1.5'
+  s.version          = '0.1.6'
   s.summary          = 'MyUltronServer — an embeddable TCP debug server for iOS apps.'
   s.description      = <<-DESC
 MyUltronServer enables real-time two-way communication between a host iOS application

@@ -13,6 +13,7 @@
 #import "../Business/MyUltronUserDefaults.h"
 #import "../Business/MyUltronSqlite.h"
 #import "../Business/MyUltronLog.h"
+#import "../Business/MyUltronScreenshot.h"
 
 @interface MyUltronManager ()
 
@@ -25,6 +26,7 @@
 @property (nonatomic, strong) MyUltronUserDefaults *userDefaultsModule;
 @property (nonatomic, strong) MyUltronSqlite      *sqliteModule;
 @property (nonatomic, strong) MyUltronLog        *logModule;
+@property (nonatomic, strong) MyUltronScreenshot  *screenshotModule;
 
 @end
 
@@ -63,6 +65,7 @@
         _userDefaultsModule = [[MyUltronUserDefaults alloc] initWithServer:_server];
         _sqliteModule       = [[MyUltronSqlite alloc]      initWithServer:_server];
         _logModule          = [[MyUltronLog alloc]         initWithServer:_server];
+        _screenshotModule   = [[MyUltronScreenshot alloc]  initWithServer:_server];
     }
     return self;
 }
