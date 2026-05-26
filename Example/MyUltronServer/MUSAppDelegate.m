@@ -8,18 +8,30 @@
 
 #import "MUSAppDelegate.h"
 #import <MyUltronServer/MyUltronServer.h>
+@import UserNotifications;
+
+@interface MUSAppDelegate () <UNUserNotificationCenterDelegate>
+@end
 
 @implementation MUSAppDelegate
 
 - (BOOL)application:(UIApplication *)application
 didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // MyUltronServer auto-starts on +load (1 s delay).
-    // You can also call -start explicitly for fine-grained control:
-    //
-    //   [[MyUltronManager sharedInstance] start];
+    // 注册通知授权 + 设置 delegate（前台展示推送弹窗）
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert |
+                                             UNAuthorizationOptionSound |
+                                             UNAuthorizationOptionBadge)
+                          completionHandler:^(BOOL granted, NSError *error) {
+        if (granted) {
+            NSLog(@"[MUSAppDelegate] 通知授权成功");
+        } else {
+            NSLog(@"[MUSAppDelegate] 通知授权失败: %@", error);
+        }
+    }];
+    center.delegate = self;
 
-    // Optional: attach extra app info visible in the MyUltron desktop client.
     [MyUltronManager sharedInstance].extraAppInfo = ^NSDictionary *{
         return @{
             @"exampleKey": @"exampleValue",
@@ -27,6 +39,24 @@ didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
     };
 
     return YES;
+}
+
+// MARK: - UNUserNotificationCenterDelegate (前台弹窗)
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)notification
+         withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler
+{
+    // 前台也弹横幅 + 声音 + badge
+    if (@available(iOS 14.0, *)) {
+        completionHandler(UNNotificationPresentationOptionBanner |
+                          UNNotificationPresentationOptionSound |
+                          UNNotificationPresentationOptionBadge);
+    } else {
+        completionHandler(UNNotificationPresentationOptionAlert |
+                          UNNotificationPresentationOptionSound |
+                          UNNotificationPresentationOptionBadge);
+    }
 }
 
 // MARK: - UIScene Configuration
@@ -49,6 +79,38 @@ configurationForConnectingSceneSession:(UISceneSession *)connectingSceneSession
 - (void)applicationWillEnterForeground:(UIApplication *)application
 {
     [[MyUltronManager sharedInstance] applicationWillEnterForeground];
+}
+
+// MARK: - Remote Notification（原生推送 & MyUltronMessagePush 模块模拟）
+
+- (void)application:(UIApplication *)application
+didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    NSLog(@"[MUSAppDelegate] 收到远程推送: %@", userInfo);
+
+    NSDictionary *aps = userInfo[@"aps"];
+    NSDictionary *alert = aps[@"alert"];
+
+    // 发本地通知模拟系统推送弹窗（前台也能看到）
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title    = [alert[@"title"] isKindOfClass:[NSString class]] ? alert[@"title"] : @"";
+    content.body     = [alert[@"body"]  isKindOfClass:[NSString class]] ? alert[@"body"]  : @"";
+    content.sound    = [aps[@"sound"] isKindOfClass:[NSString class]]
+                        ? [UNNotificationSound defaultSound]
+                        : nil;
+    content.badge    = aps[@"badge"];
+
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString]
+                                                                          content:content
+                                                                          trigger:nil];
+    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:request
+                                                           withCompletionHandler:^(NSError *error) {
+        if (error) {
+            NSLog(@"[MUSAppDelegate] 推送弹窗失败: %@", error);
+        } else {
+            NSLog(@"[MUSAppDelegate] 推送弹窗已展示");
+        }
+    }];
 }
 
 @end
