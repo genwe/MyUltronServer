@@ -44,7 +44,9 @@
  │   • MyUltronSandbox （文件操作）       │
  │   • MyUltronUserDefaults（偏好设置）   │
  │   • MyUltronSqlite   （数据库浏览）    │
- │   • MyUltronLog      （日志捕获）      │
+ │   • MyUltronLog        （日志捕获）      │
+ │   • MyUltronScreenshot （截屏）          │
+ │   • MyUltronMessagePush（消息推送）      │
  └──────────────────────────────────────┘
 ```
 
@@ -72,7 +74,9 @@ Sources/MyUltronServer/
 │   ├── MyUltronSandbox.h / .m      # 沙盒文件操作（列举/创建/删除）
 │   ├── MyUltronUserDefaults.h / .m # NSUserDefaults 查看器（浏览/设置/删除）
 │   ├── MyUltronSqlite.h / .m       # SQLite 查看器（列举库、浏览表、增删改查）
-│   └── MyUltronLog.h / .m          # 日志捕获与转发
+│   ├── MyUltronLog.h / .m          # 日志捕获与转发
+│   ├── MyUltronScreenshot.h / .m   # TCP 截屏（UIGraphicsImageRenderer → PNG）
+│   └── MyUltronMessagePush.h / .m  # 模拟远程推送（→ didReceiveRemoteNotification:）
 ```
 
 ### 消息类型
@@ -93,6 +97,8 @@ Sources/MyUltronServer/
 | `logStart` | MyUltronLog | 客户端 → 服务端 | 开始日志捕获 |
 | `logStop` | MyUltronLog | 客户端 → 服务端 | 停止日志捕获 |
 | `logMessage` | MyUltronLog | 服务端 → 客户端 | 转发日志行 |
+| `screenshot` | MyUltronScreenshot | 客户端 → 服务端 → 二进制 | 截取 keyWindow 画面 |
+| `messagePush` | MyUltronMessagePush | 客户端 → 服务端 | 模拟远程推送通知 |
 
 ## 协议
 

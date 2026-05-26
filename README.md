@@ -44,7 +44,9 @@ An embeddable TCP debug server for iOS apps. MyUltronServer enables real-time tw
  │   • MyUltronSandbox (file ops)       │
  │   • MyUltronUserDefaults (prefs)     │
  │   • MyUltronSqlite   (DB browser)    │
- │   • MyUltronLog      (log capture)   │
+ │   • MyUltronLog        (log capture)   │
+ │   • MyUltronScreenshot (screenshot)    │
+ │   • MyUltronMessagePush(push sim)      │
  └──────────────────────────────────────┘
 ```
 
@@ -72,7 +74,9 @@ Sources/MyUltronServer/
 │   ├── MyUltronSandbox.h / .m      # Sandbox file operations (list/create/delete)
 │   ├── MyUltronUserDefaults.h / .m # NSUserDefaults inspector (browse/set/delete)
 │   ├── MyUltronSqlite.h / .m       # SQLite inspector (list DBs, browse tables, CRUD)
-│   └── MyUltronLog.h / .m          # Log capture and forwarding
+│   ├── MyUltronLog.h / .m          # Log capture and forwarding
+│   ├── MyUltronScreenshot.h / .m   # Screenshot via TCP (UIGraphicsImageRenderer → PNG)
+│   └── MyUltronMessagePush.h / .m  # Simulate remote push (→ didReceiveRemoteNotification:)
 ```
 
 ### Message Types
@@ -93,6 +97,8 @@ Sources/MyUltronServer/
 | `logStart` | MyUltronLog | Client → Server | Start log capture |
 | `logStop` | MyUltronLog | Client → Server | Stop log capture |
 | `logMessage` | MyUltronLog | Server → Client | Log line forwarded |
+| `screenshot` | MyUltronScreenshot | Client → Server → Binary | Capture keyWindow screenshot |
+| `messagePush` | MyUltronMessagePush | Client → Server | Simulate remote push notification |
 
 ## Protocol
 
