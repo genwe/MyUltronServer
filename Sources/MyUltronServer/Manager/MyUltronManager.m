@@ -15,6 +15,7 @@
 #import "../Business/MyUltronLog.h"
 #import "../Business/MyUltronScreenshot.h"
 #import "../Business/MyUltronMessagePush.h"
+#import "../Business/MyUltronNetworkMonitor.h"
 
 @interface MyUltronManager ()
 
@@ -28,7 +29,8 @@
 @property (nonatomic, strong) MyUltronSqlite      *sqliteModule;
 @property (nonatomic, strong) MyUltronLog        *logModule;
 @property (nonatomic, strong) MyUltronScreenshot  *screenshotModule;
-@property (nonatomic, strong) MyUltronMessagePush *messagePushModule;
+@property (nonatomic, strong) MyUltronMessagePush   *messagePushModule;
+@property (nonatomic, strong) MyUltronNetworkMonitor *networkMonitorModule;
 
 @end
 
@@ -68,7 +70,8 @@
         _sqliteModule       = [[MyUltronSqlite alloc]      initWithServer:_server];
         _logModule          = [[MyUltronLog alloc]         initWithServer:_server];
         _screenshotModule   = [[MyUltronScreenshot alloc]  initWithServer:_server];
-        _messagePushModule  = [[MyUltronMessagePush alloc] initWithServer:_server];
+        _messagePushModule    = [[MyUltronMessagePush alloc]   initWithServer:_server];
+        _networkMonitorModule = [[MyUltronNetworkMonitor alloc] initWithServer:_server];
     }
     return self;
 }
