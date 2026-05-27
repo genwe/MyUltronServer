@@ -61,6 +61,14 @@
 
 // Shared state
 static BOOL _monitoring = NO;
+static NSMutableDictionary<NSString *, NSDictionary *> *_mockRules = nil;
+
+// 确保 _mockRules 已初始化
+static inline void ensureMockRules() {
+    if (!_mockRules) {
+        _mockRules = [NSMutableDictionary dictionary];
+    }
+}
 
 @implementation ULNetworkProtocol
 
@@ -81,6 +89,20 @@ static BOOL _monitoring = NO;
 }
 
 - (void)startLoading {
+    // 检查 Mock 规则：匹配则直接返回假数据
+    if (_monitoring) {
+        ensureMockRules();
+        NSDictionary *mock = nil;
+        @synchronized (_mockRules) {
+            mock = _mockRules[self.request.URL.absoluteString];
+        }
+        if (mock && [mock[@"enabled"] boolValue]) {
+            NSLog(@"[Mock] 命中 mock 规则: %@", self.request.URL.absoluteString);
+            [self sendMockResponse:mock];
+            return;
+        }
+    }
+
     NSMutableURLRequest *mutableRequest = [self.request mutableCopy];
     [NSURLProtocol setProperty:@YES forKey:@"ULMonitored" inRequest:mutableRequest];
 
@@ -94,6 +116,48 @@ static BOOL _monitoring = NO;
                                                      delegateQueue:nil];
     NSURLSessionDataTask *task = [session dataTaskWithRequest:mutableRequest];
     [task resume];
+}
+
+- (void)sendMockResponse:(NSDictionary *)mock {
+    NSInteger statusCode = [mock[@"statusCode"] integerValue];
+    NSData *bodyData = [mock[@"responseBody"] dataUsingEncoding:NSUTF8StringEncoding] ?: [NSData data];
+    NSDictionary *headers = @{@"Content-Type": @"application/json", @"X-Mock": @"true"};
+
+    NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc] initWithURL:self.request.URL
+                                                              statusCode:statusCode > 0 ? statusCode : 200
+                                                             HTTPVersion:@"HTTP/1.1"
+                                                            headerFields:headers];
+    [self.client URLProtocol:self didReceiveResponse:response cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+    [self.client URLProtocol:self didLoadData:bodyData];
+    [self.client URLProtocolDidFinishLoading:self];
+
+    // Mock 请求也推送到 Mac（标记为 mock）
+    ULNetworkEntry *entry = [[ULNetworkEntry alloc] init];
+    entry.requestID  = [[NSUUID UUID] UUIDString];
+    entry.method     = self.request.HTTPMethod ?: @"GET";
+    entry.url        = [NSString stringWithFormat:@"[MOCK] %@", self.request.URL.absoluteString];
+    entry.statusCode = statusCode;
+    entry.duration   = 0;
+    entry.requestSize = 0;
+    entry.responseSize = bodyData.length;
+    entry.requestHeaders = @"{}";
+    entry.responseHeaders = @"{\"X-Mock\":\"true\"}";
+    entry.requestBody = @"";
+    entry.requestQuery = self.request.URL.query ?: @"";
+    entry.responseBody = mock[@"responseBody"] ?: @"";
+    entry.timestamp = [NSDate date];
+
+    MyUltronServer *server = [MyUltronManager sharedInstance].server;
+    if (server) {
+        [server sendMessage:@{
+            kMyUltronMsgKeyVersion: @"1.0",
+            kMyUltronMsgKeyType:    @"networkMonitor",
+            kMyUltronMsgKeyContent: @{
+                @"action": @"push",
+                @"entry": [entry toDict],
+            },
+        }];
+    }
 }
 
 - (void)stopLoading {
@@ -204,6 +268,7 @@ didCompleteWithError:(NSError *)error {
         _server = server;
         _monitoring = YES; // 默认开启监控
         [server registerForMessageType:@"networkMonitor" delegate:self];
+        [server registerForMessageType:@"networkMock"    delegate:self];
         NSLog(@"[MyUltron] NetworkMonitor module registered");
     }
     return self;
@@ -224,7 +289,101 @@ didCompleteWithError:(NSError *)error {
             _monitoring = NO;
             [self replyWithSuccess:YES];
         }
+    } else if ([type isEqualToString:@"networkMock"]) {
+        if ([action isEqualToString:@"sync"]) {
+            [self handleMockSync:content];
+        } else if ([action isEqualToString:@"add"]) {
+            [self handleMockAdd:content];
+        } else if ([action isEqualToString:@"delete"]) {
+            [self handleMockDelete:content];
+        } else if ([action isEqualToString:@"clear"]) {
+            [self handleMockClear];
+        }
     }
+}
+
+- (void)handleMockSync:(NSDictionary *)content {
+    ensureMockRules();
+    NSArray *rules = content[@"rules"];
+    NSLog(@"[Mock] 收到 sync: %lu 条规则", (unsigned long)rules.count);
+    @synchronized (_mockRules) {
+        [_mockRules removeAllObjects];
+        for (NSDictionary *rule in rules) {
+            NSString *url = rule[@"url"];
+            if (!url.length) continue;
+            _mockRules[url] = @{
+                @"enabled": @YES,
+                @"statusCode": rule[@"statusCode"] ?: @200,
+                @"responseHeaders": rule[@"responseHeaders"] ?: @"{}",
+                @"responseBody": rule[@"responseBody"] ?: @"",
+            };
+        }
+    }
+    [self replyMockSuccess:YES action:@"sync"];
+}
+
+- (void)handleMockAdd:(NSDictionary *)content {
+    ensureMockRules();
+    NSString *url = content[@"url"];
+    if (!url.length) return;
+    NSLog(@"[Mock] 收到 add: %@, body: %lu bytes", url, (unsigned long)[content[@"responseBody"] length]);
+    @synchronized (_mockRules) {
+        _mockRules[url] = @{
+            @"enabled":        content[@"enabled"] ?: @YES,
+            @"statusCode":     content[@"statusCode"] ?: @200,
+            @"responseHeaders": content[@"responseHeaders"] ?: @"{}",
+            @"responseBody":   content[@"responseBody"] ?: @"",
+        };
+    }
+    [self replyMockSuccess:YES action:@"add"];
+}
+
+- (void)handleMockDelete:(NSDictionary *)content {
+    NSString *url = content[@"url"];
+    @synchronized (_mockRules) {
+        [_mockRules removeObjectForKey:url];
+    }
+    [self replyMockSuccess:YES action:@"delete"];
+}
+
+- (void)handleMockClear {
+    @synchronized (_mockRules) {
+        [_mockRules removeAllObjects];
+    }
+    [self replyMockSuccess:YES action:@"clear"];
+}
+
+- (void)handleMockList {
+    NSArray *rules;
+    @synchronized (_mockRules) {
+        NSMutableArray *arr = [NSMutableArray array];
+        for (NSString *url in _mockRules) {
+            NSMutableDictionary *d = [_mockRules[url] mutableCopy];
+            d[@"url"] = url;
+            [arr addObject:d];
+        }
+        rules = arr;
+    }
+    [self.server sendMessage:@{
+        kMyUltronMsgKeyVersion: @"1.0",
+        kMyUltronMsgKeyType:    @"networkMock",
+        kMyUltronMsgKeyContent: @{
+            @"success": @YES,
+            @"action": @"list",
+            @"rules": rules ?: @[],
+        },
+    }];
+}
+
+- (void)replyMockSuccess:(BOOL)success action:(NSString *)action {
+    [self.server sendMessage:@{
+        kMyUltronMsgKeyVersion: @"1.0",
+        kMyUltronMsgKeyType:    @"networkMock",
+        kMyUltronMsgKeyContent: @{
+            @"success": @(success),
+            @"action": action,
+        },
+    }];
 }
 
 - (void)replyWithSuccess:(BOOL)success {
