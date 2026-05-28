@@ -7,12 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MyUltronModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class MyUltronServer;
 
-@interface MyUltronMessagePush : NSObject
+@interface MyUltronMessagePush : NSObject <MyUltronModule>
 
 - (instancetype)initWithServer:(MyUltronServer *)server;
 

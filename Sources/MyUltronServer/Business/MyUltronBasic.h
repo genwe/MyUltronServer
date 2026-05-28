@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MyUltronModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// Current MyUltronServer version.
 extern NSString * const kMyUltronServerVersion;
 
-@interface MyUltronBasic : NSObject
+@interface MyUltronBasic : NSObject <MyUltronModule>
 
 - (instancetype)initWithServer:(MyUltronServer *)server;
 

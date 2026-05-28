@@ -6,12 +6,13 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MyUltronModule.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class MyUltronServer;
 
-@interface MyUltronSqlite : NSObject
+@interface MyUltronSqlite : NSObject <MyUltronModule>
 
 - (instancetype)initWithServer:(MyUltronServer *)server;
 

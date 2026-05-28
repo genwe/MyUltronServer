@@ -7,41 +7,45 @@
 
 #import "MyUltronManager.h"
 #import "../MyUltronServer.h"
-#import "../Business/MyUltronBasic.h"
-#import "../Business/MyUltronAppInfo.h"
-#import "../Business/MyUltronSandbox.h"
-#import "../Business/MyUltronUserDefaults.h"
-#import "../Business/MyUltronSqlite.h"
-#import "../Business/MyUltronLog.h"
-#import "../Business/MyUltronScreenshot.h"
-#import "../Business/MyUltronMessagePush.h"
-#import "../Business/MyUltronNetworkMonitor.h"
+#import "../Business/MyUltronModule.h"
+#import <objc/runtime.h>
 
 @interface MyUltronManager ()
 
 @property (nonatomic, strong, readwrite) MyUltronServer *server;
-
-// Built-in modules
-@property (nonatomic, strong) MyUltronBasic   *basicModule;
-@property (nonatomic, strong) MyUltronAppInfo *appInfoModule;
-@property (nonatomic, strong) MyUltronSandbox     *sandboxModule;
-@property (nonatomic, strong) MyUltronUserDefaults *userDefaultsModule;
-@property (nonatomic, strong) MyUltronSqlite      *sqliteModule;
-@property (nonatomic, strong) MyUltronLog        *logModule;
-@property (nonatomic, strong) MyUltronScreenshot  *screenshotModule;
-@property (nonatomic, strong) MyUltronMessagePush   *messagePushModule;
-@property (nonatomic, strong) MyUltronNetworkMonitor *networkMonitorModule;
+@property (nonatomic, strong) NSMutableArray<id<MyUltronModule>> *moduleInstances;
 
 @end
 
 @implementation MyUltronManager
 
+#pragma mark - Module Discovery
+
+// 通过 objc_getClassList 扫描所有遵循 MyUltronModule 协议的类
++ (NSArray<Class> *)discoverModuleClasses {
+    int count = objc_getClassList(NULL, 0);
+    if (count <= 0) return @[];
+
+    Class *allClasses = (Class *)malloc((unsigned)count * sizeof(Class));
+    objc_getClassList(allClasses, count);
+
+    NSMutableArray<Class> *result = [NSMutableArray array];
+    Protocol *proto = @protocol(MyUltronModule);
+
+    for (int i = 0; i < count; i++) {
+        Class cls = allClasses[i];
+        if (class_conformsToProtocol(cls, proto) && cls != [self class]) {
+            [result addObject:cls];
+        }
+    }
+
+    free(allClasses);
+    return result;
+}
+
 #pragma mark - Singleton
 
 + (void)load {
-    // Cold-launch auto-start: the server begins listening as soon as
-    // the class is loaded (which happens before main() with +load).
-    // If you prefer manual start, remove this and call -start explicitly.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
         [[MyUltronManager sharedInstance] start];
@@ -61,17 +65,13 @@
     self = [super init];
     if (self) {
         _server = [[MyUltronServer alloc] initWithPort:62345];
+        _moduleInstances = [NSMutableArray array];
 
-        // Initialize built-in business modules
-        _basicModule   = [[MyUltronBasic alloc]   initWithServer:_server];
-        _appInfoModule = [[MyUltronAppInfo alloc] initWithServer:_server];
-        _sandboxModule     = [[MyUltronSandbox alloc]     initWithServer:_server];
-        _userDefaultsModule = [[MyUltronUserDefaults alloc] initWithServer:_server];
-        _sqliteModule       = [[MyUltronSqlite alloc]      initWithServer:_server];
-        _logModule          = [[MyUltronLog alloc]         initWithServer:_server];
-        _screenshotModule   = [[MyUltronScreenshot alloc]  initWithServer:_server];
-        _messagePushModule    = [[MyUltronMessagePush alloc]   initWithServer:_server];
-        _networkMonitorModule = [[MyUltronNetworkMonitor alloc] initWithServer:_server];
+        // 自动发现并实例化所有遵循 MyUltronModule 协议的类
+        for (Class cls in [self.class discoverModuleClasses]) {
+            id module = [[cls alloc] initWithServer:_server];
+            if (module) [_moduleInstances addObject:module];
+        }
     }
     return self;
 }

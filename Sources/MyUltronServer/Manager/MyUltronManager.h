@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef NSDictionary * _Nonnull (^MyUltronExtraAppInfoBlock)(void);
 
 @class MyUltronServer;
+@protocol MyUltronServerMessageDelegate;
 
 @interface MyUltronManager : NSObject
 
@@ -38,6 +39,23 @@ typedef NSDictionary * _Nonnull (^MyUltronExtraAppInfoBlock)(void);
 - (void)applicationDidFinishLaunching;
 - (void)applicationDidEnterBackground;
 - (void)applicationWillEnterForeground;
+
+// ---- Module registration ----
+
+/// Register a business module class. Modules call this in +load to self-register.
+/// The class must implement -initWithServer: (taking a MyUltronServer *).
++ (void)registerModuleClass:(Class)cls;
+
+// ---- Custom message handler ----
+
+/// Register an external delegate for a custom message type.
+/// External developers can call this to add custom business logic without
+/// modifying MyUltronServer source code.
+///
+/// @param messageType The message type string (e.g. @"myFeature").
+/// @param delegate    The handler conforming to MyUltronServerMessageDelegate.
+- (void)registerForMessageType:(NSString *)messageType
+                      delegate:(id<MyUltronServerMessageDelegate>)delegate;
 
 @end
 

@@ -4,10 +4,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MyUltronModule.h"
 
 @class MyUltronServer;
 
-@interface MyUltronLog : NSObject
+@interface MyUltronLog : NSObject <MyUltronModule>
 
 - (instancetype)initWithServer:(MyUltronServer *)server;
 
