@@ -94,9 +94,16 @@ static inline void ensureMockRules() {
         ensureMockRules();
         NSDictionary *mock = nil;
         @synchronized (_mockRules) {
-            mock = _mockRules[self.request.URL.absoluteString];
+            for (NSString *name in _mockRules) {
+                NSDictionary *rule = _mockRules[name];
+                if ([rule[@"url"] isEqualToString:self.request.URL.absoluteString] &&
+                    [rule[@"enabled"] boolValue]) {
+                    mock = rule;
+                    break;
+                }
+            }
         }
-        if (mock && [mock[@"enabled"] boolValue]) {
+        if (mock) {
             NSLog(@"[Mock] 命中 mock 规则: %@", self.request.URL.absoluteString);
             [self sendMockResponse:mock];
             return;
@@ -309,9 +316,10 @@ didCompleteWithError:(NSError *)error {
     @synchronized (_mockRules) {
         [_mockRules removeAllObjects];
         for (NSDictionary *rule in rules) {
-            NSString *url = rule[@"url"];
-            if (!url.length) continue;
-            _mockRules[url] = @{
+            NSString *name = rule[@"name"];
+            if (!name.length) continue;
+            _mockRules[name] = @{
+                @"url": rule[@"url"] ?: @"",
                 @"enabled": @YES,
                 @"statusCode": rule[@"statusCode"] ?: @200,
                 @"responseHeaders": rule[@"responseHeaders"] ?: @"{}",
@@ -324,11 +332,12 @@ didCompleteWithError:(NSError *)error {
 
 - (void)handleMockAdd:(NSDictionary *)content {
     ensureMockRules();
-    NSString *url = content[@"url"];
-    if (!url.length) return;
-    NSLog(@"[Mock] 收到 add: %@, body: %lu bytes", url, (unsigned long)[content[@"responseBody"] length]);
+    NSString *name = content[@"name"];
+    if (!name.length) return;
+    NSLog(@"[Mock] 收到 add: %@, body: %lu bytes", name, (unsigned long)[content[@"responseBody"] length]);
     @synchronized (_mockRules) {
-        _mockRules[url] = @{
+        _mockRules[name] = @{
+            @"url":            content[@"url"] ?: @"",
             @"enabled":        content[@"enabled"] ?: @YES,
             @"statusCode":     content[@"statusCode"] ?: @200,
             @"responseHeaders": content[@"responseHeaders"] ?: @"{}",
@@ -339,9 +348,9 @@ didCompleteWithError:(NSError *)error {
 }
 
 - (void)handleMockDelete:(NSDictionary *)content {
-    NSString *url = content[@"url"];
+    NSString *name = content[@"name"];
     @synchronized (_mockRules) {
-        [_mockRules removeObjectForKey:url];
+        [_mockRules removeObjectForKey:name];
     }
     [self replyMockSuccess:YES action:@"delete"];
 }
