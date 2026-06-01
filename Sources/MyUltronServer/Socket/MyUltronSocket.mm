@@ -72,21 +72,36 @@ const NSInteger kMyUltronPacketLengthByteCount = 4;
 
 - (void)start {
     dispatch_async(self.socketQueue, ^{
-        // Already listening — avoid double-bind.
         if (self.listenSocket != nil) {
             return;
         }
-
-        NSError *error = nil;
-        GCDAsyncSocket *sock = [[GCDAsyncSocket alloc] initWithDelegate:self
-                                                          delegateQueue:self.socketQueue];
-        if (![sock acceptOnPort:self.port error:&error]) {
-            NSLog(@"[MyUltron] Failed to listen on port %u: %@", self.port, error);
-            return;
-        }
-        self.listenSocket = sock;
-        NSLog(@"[MyUltron] Listening on port %u", (unsigned int)[sock localPort]);
+        [self _tryListenFromPort:self.port toPort:self.port + 100];
     });
+}
+
+- (void)_tryListenFromPort:(uint32_t)fromPort toPort:(uint32_t)toPort {
+    if (fromPort > toPort) {
+        NSLog(@"[MyUltron] All ports in range %u-%u are occupied", self.port, toPort);
+        return;
+    }
+
+    GCDAsyncSocket *sock = [[GCDAsyncSocket alloc] initWithDelegate:self
+                                                      delegateQueue:self.socketQueue];
+    NSError *error = nil;
+    if (![sock acceptOnPort:fromPort error:&error]) {
+        if (error.code == 48 || error.code == 49) {
+            // EADDRINUSE (48) or EADDRNOTAVAIL (49) — try next port
+            NSLog(@"[MyUltron] Port %u unavailable (%@), trying next...", fromPort, error);
+            [self _tryListenFromPort:fromPort + 1 toPort:toPort];
+        } else {
+            NSLog(@"[MyUltron] Failed to listen on port %u: %@", fromPort, error);
+        }
+        return;
+    }
+
+    self.listenSocket = sock;
+    self.port = fromPort;
+    NSLog(@"[MyUltron] Listening on port %u", (unsigned int)[sock localPort]);
 }
 
 - (void)stop {
